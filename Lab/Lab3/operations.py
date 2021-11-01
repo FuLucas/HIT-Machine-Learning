@@ -14,13 +14,13 @@ def Data(mean, N=100, naive=True):
     x = np.random.multivariate_normal(mean, cov, size=N)
     return x
 
-def Accuracy(real_lable, class_lable, k):
+def Accuracy(real_label, class_label, k):
     """计算聚类准确率
     """
     classes = list(permutations(range(k), k))
     counts = np.zeros(len(classes))
     for i in range(len(classes)):
-        for j in range(real_lable.shape[0]):
-            if int(real_lable[j]) == classes[i][int(class_lable[j])]:
+        for j in range(real_label.shape[0]):
+            if int(real_label[j]) == classes[i][int(class_label[j])]:
                 counts[i] += 1
-    return np.max(counts) / real_lable.shape[0]
+    return np.max(counts) / real_label.shape[0]

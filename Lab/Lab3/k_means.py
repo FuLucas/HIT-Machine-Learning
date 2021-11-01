@@ -42,34 +42,28 @@ class K_Means(object):
 
 if __name__ == "__main__":
     data0 = Data([1, 1])
-    data1 = Data([3, 3])
-    data2 = Data([3, 1])
+    data1 = Data([4, 4])
+    data2 = Data([4, 1])
+    classes = 3
     data = np.vstack((data0, data1, data2))
-    real_lable = np.zeros(data.shape[0]).astype(np.int32)
-    real_lable[:data0.shape[0]] = 0
-    real_lable[data0.shape[0]:data0.shape[0]+data1.shape[0]] = 1
-    real_lable[data0.shape[0]+data1.shape[0]:] = 2
+    real_label = np.concatenate(
+        (np.zeros(len(data0)), np.ones(len(data1)), 2 * np.ones(len(data2))))
     plt.subplot(121)
     plt.title("My Data")
-    plt.scatter(data0[:, 0], data0[:, 1], marker="x", c="b", label="My Data 1")
-    plt.scatter(data1[:, 0], data1[:, 1], marker="x", c="r", label="My Data 2")
-    plt.scatter(data2[:, 0], data2[:, 1], marker="x", c="k", label="My Data 2")
+    plt.scatter(data[:, 0].tolist(), data[:, 1].tolist(), marker="x", c=np.array(
+        real_label), cmap='rainbow', label="Generated Data")
     plt.legend()
 
-    kmeans = K_Means(data, 3)
+    kmeans = K_Means(data, classes)
     mu, label, iter = kmeans.k_means()
-    print(iter)
     # show result
     plt.subplot(122)
     plt.title("K-Means")
-    type0 = data[np.where(label == 0)]
-    type1 = data[np.where(label == 1)]
-    type2 = data[np.where(label == 2)]
-    plt.scatter(type0[:, 0], type0[:, 1], marker="x", c="b", label="Mean 1")
-    plt.scatter(type1[:, 0], type1[:, 1], marker="x", c="r", label="Mean 2")
-    plt.scatter(type2[:, 0], type2[:, 1], marker="x", c="k", label="Mean 3")
+    plt.scatter(data[:, 0].tolist(), data[:, 1].tolist(),
+                marker="x", c=np.array(label), cmap='rainbow', label="K-Means")
     plt.legend()
 
     plt.show()
-    accuracy = Accuracy(real_lable, label, 3)
-    print(accuracy)
+    accuracy = Accuracy(real_label, label, classes)
+    print("Accuracy: " + str(accuracy))
+    print("Iterations: " + str(iter))
