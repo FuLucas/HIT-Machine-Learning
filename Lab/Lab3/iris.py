@@ -4,6 +4,8 @@ from operations import *
 from GMM import *
 from k_means import *
 
+# 鸢尾花
+
 def GetData():
     data_set = pd.read_csv("./data/iris.csv")
     x = data_set.drop('class', axis=1)

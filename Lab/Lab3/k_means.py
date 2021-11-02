@@ -6,6 +6,13 @@ from operations import Data, Accuracy
 
 class K_Means(object):
     def __init__(self, data, k, delta=1e-6):
+        """ 初始化数据集
+        Args:
+            data (array): 数据数组，每行表示一个样本地特征，行数表示样本数
+            k (int): 要分成的类数
+            delta (double, optional): tolerance，当类别中心的变化的二范数
+                                    小于这个值就认为分类结束. Defaults to 1e-6.
+        """
         self.data = data
         self.k = k
         self.delta = delta
