@@ -23,7 +23,13 @@ if __name__ == '__main__':
     gmm = GaussianMixtureModel(data, classes)
     gmm_mu, gmm_label, gmm_iter, gmm_LLs = gmm.GMM()
 
+    plt.plot(gmm_LLs, color="k", label="Log Likelihood Change")
+    plt.xlabel("Number of iterations")
+    plt.ylabel("LL")
+    plt.legend(loc='best')
+    plt.show()
+
     kmeans_accuracy = Accuracy(real_label, kmeans_label, classes)
     gmm_accuracy = Accuracy(real_label, gmm_label, classes)
-    print(kmeans_accuracy)
-    print(gmm_accuracy)
+    print("K-Means Accuracy: ", kmeans_accuracy)
+    print("GMM Accuracy", gmm_accuracy)
