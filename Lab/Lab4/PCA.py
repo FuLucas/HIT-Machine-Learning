@@ -16,33 +16,6 @@ def pca(data, reduced_dimension):
     feature_vectors = np.delete(feature_vectors, index[:columns - reduced_dimension], axis=1)
     return feature_vectors, x_mean
 
-def generate_data(data_dimension, number=100):
-    # Generate 2D or 3D data
-    if data_dimension == 2:
-        mean = [-2, 2]
-        cov = [[1, 0], [0, 0.01]]
-    elif data_dimension == 3:
-        mean = [1, 2, 3]
-        cov = [[0.01, 0, 0], [0, 1, 0], [0, 0, 1]]
-    x = np.random.multivariate_normal(mean, cov, number)
-    return x
-
-def draw_data(dimension_draw, origin_data, pca_data):
-    """ 将PCA前后的数据进行可视化对比 """
-    if dimension_draw == 2:
-        plt.scatter(origin_data[:, 0], origin_data[:, 1], marker="x", color="b", label="Origin Data")
-        plt.scatter(pca_data[:, 0], pca_data[:, 1], color='r', label='PCA Data')
-        plt.plot(pca_data[:, 0], pca_data[:, 1], c="k", label="vector", alpha=0.5)
-    elif dimension_draw == 3:
-        fig = plt.figure()
-        ax = Axes3D(fig, auto_add_to_figure=False)
-        fig.add_axes(ax)
-        ax.scatter(origin_data[:, 0], origin_data[:, 1], origin_data[:, 2], marker="x", color="b", label='Origin Data')
-        ax.scatter(pca_data[:, 0], pca_data[:, 1], pca_data[:, 2], color='r', label='PCA Data')
-        ax.plot_trisurf(pca_data[:, 0], pca_data[:, 1], pca_data[:, 2], color="y", alpha=0.3)
-    plt.legend(loc="best")
-    plt.show()
-
 def psnr(source, target):
     # Peak signal-to-noise ratio 峰值噪音比
     rmse = np.sqrt(np.mean((source - target) ** 2))
@@ -51,54 +24,76 @@ def psnr(source, target):
 
 if __name__ == "__main__":
 
+    number = 100
     # test for generation data
-    dimension = 3
-    x = generate_data(dimension)
-    w, mu_x = pca(x, dimension - 1)
+    mean_2 = [-2, 2]
+    cov_2 = [[1, 0], [0, 0.01]]
+    x = np.random.multivariate_normal(mean_2, cov_2, number)
+    w, mu_x = pca(x, 1)
     pca_data = (x - mu_x).dot(w).dot(w.T) + mu_x
-    draw_data(dimension, x, pca_data)
+    # draw result
+    plt.scatter(x[:, 0], x[:, 1], marker="x", color="b", label="Origin Data")
+    plt.scatter(pca_data[:, 0], pca_data[:, 1], color='r', label='PCA Data')
+    plt.plot(pca_data[:, 0], pca_data[:, 1], c="k", label="Vector", alpha=0.5)
+    plt.legend(loc="best")
+    plt.savefig('./images_result/2D21D.svg')
+    plt.show()
+
+    mean_3 = [1, 2, 3]
+    cov_3 = [[0.01, 0, 0], [0, 1, 0], [0, 0, 1]]
+    x = np.random.multivariate_normal(mean_3, cov_3, number)
+    # PCA降维
+    w, mu_x = pca(x, 2)
+    # 重建数据
+    pca_data = (x - mu_x).dot(w).dot(w.T) + mu_x
+    # draw result
+    fig = plt.figure()
+    ax = Axes3D(fig, auto_add_to_figure=False)
+    fig.add_axes(ax)
+    ax.scatter(x[:, 0], x[:, 1], x[:, 2], marker="x", color="b", label='Origin Data')
+    ax.scatter(pca_data[:, 0], pca_data[:, 1], pca_data[:, 2], color='r', label='PCA Data')
+    ax.plot_trisurf(pca_data[:, 0], pca_data[:, 1], pca_data[:, 2], color="y", alpha=0.3)
+    plt.legend(loc="best")
+    plt.savefig('./images_result/3D22D.svg')
+    plt.show()
 
     # psnr of one picture
     pic = Image.open('./data/61853_2019.jpg')
-    pic_array = np.asarray(pic)
+    pic_array = np.array(pic)
     psnrS = list()
     for k in range(50):
-        w, mu_x = pca(pic_array, k)  # PCA降维
-        pca_data = (pic_array - mu_x).dot(w).dot(w.T) + mu_x  # 重建数据
+        # PCA降维
+        w, mu_x = pca(pic_array, k)
+        # 重建数据
+        pca_data = (pic_array - mu_x).dot(w).dot(w.T) + mu_x
         psnrS.append(psnr(pic_array, pca_data))
-    plt.plot(psnrS)
+    # print(np.array(psnrS))
+    plt.plot(list(np.arange(50)), psnrS)
+    plt.savefig('./images_result/psnr.svg')
     plt.show()
-
 
     # picture data
     k_list = [30, 10, 5, 3, 1]
     size = len(k_list) + 1
     # list of all pictures
     file_list = os.listdir('data')
-
+    f = open('PSNR.txt', 'w')
     for file in file_list:
         file_path = os.path.join('data', file)
         # Import picture
         pic = Image.open(file_path)
         # convert to ndarray
         pic_array = np.asarray(pic)
-
-        # figure size setting
-        plt.figure(figsize=(15,5))
-        plt.subplot(1, size, 1)
-        plt.title("Original Image")
-        plt.imshow(pic_array)
-        # Do not draw the axis
-        plt.axis("off")
+        x = pic_array
+        res = file + " : "
 
         for k in k_list:
-            w, mu_x = pca(pic_array, k)  # PCA降维
-            pca_data = (pic_array - mu_x).dot(w).dot(w.T) + mu_x  # 重建数据
-            index = k_list.index(k)
-            plt.subplot(1, size, index + 2)
-            plt.title("k = " + str(k) + ", PSNR = " + "{:.2f}".format(psnr(pic_array, pca_data)) + "dB")
-            plt.imshow(pca_data)
-            plt.axis("off")
-
-        plt.savefig('./images/' + str(file_list[file_list.index(file)]))
-        plt.close()
+            w, mu_x = pca(pic_array, k)
+            pca_data = (pic_array - mu_x).dot(w).dot(w.T) + mu_x
+            x = np.concatenate((x, pca_data), axis=1)
+            psnr_k = psnr(pic_array, pca_data)
+            res = res + "k=" + str(k) + ", PSNR=" + "{:.2f}".format(psnr_k) + "dB; "
+        im = Image.fromarray(x)
+        im = im.convert('L')
+        im.save('./images/' + str(file_list[file_list.index(file)]))
+        f.write(res + '\n')
